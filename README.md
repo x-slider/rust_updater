@@ -14,19 +14,6 @@ This tool automates the process of updating Rust game servers through the follow
 4. Manages SteamCMD integration for Rust server files
 5. Handles the update process with minimal downtime
 
-## CI/CD Pipeline
-
-The project uses GitHub Actions for fully automated CI/CD:
-
-### Automatic Tags and Releases (release-tag.yml)
-
-- Each push to the `main` branch automatically creates a new incremented version tag
-- After tag creation, the workflow automatically:
-  - Builds a Windows x64 binary file
-  - Creates a new GitHub Release
-  - Attaches the compiled executable
-  - Generates release notes
-
 ## Project Structure
 
 ```
@@ -36,7 +23,7 @@ The project uses GitHub Actions for fully automated CI/CD:
 
 ## Usage
 
-1. Download the latest release from [Releases](https://github.com/USERNAME/rust_updater/releases)
+1. Download the latest release from [Releases](https://github.com/x-slider/rust_updater/releases)
 2. Place `rust_updater_windows_amd64.exe` in either:
    - The same directory as your existing Rust server installation (for updates)
    - The directory where you want to install a new Rust server
