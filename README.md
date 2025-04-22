@@ -1,3 +1,5 @@
+![Rust Server Updater](image.png)
+
 # Rust Server Updater
 
 A utility for automatic Rust game server updates.
@@ -11,6 +13,19 @@ This tool automates the process of updating Rust game servers through the follow
 3. Installs or updates the server components
 4. Manages SteamCMD integration for Rust server files
 5. Handles the update process with minimal downtime
+
+## CI/CD Pipeline
+
+The project uses GitHub Actions for fully automated CI/CD:
+
+### Automatic Tags and Releases (release-tag.yml)
+
+- Each push to the `main` branch automatically creates a new incremented version tag
+- After tag creation, the workflow automatically:
+  - Builds a Windows x64 binary file
+  - Creates a new GitHub Release
+  - Attaches the compiled executable
+  - Generates release notes
 
 ## Project Structure
 
