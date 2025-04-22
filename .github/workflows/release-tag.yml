@@ -1,4 +1,4 @@
-name: Create Tag and Release
+name: Auto Tag and Release
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
       contents: write
     if: "!startsWith(github.event.head_commit.message, 'chore: release')"
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -21,32 +21,35 @@ jobs:
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git fetch --tags
 
-      - name: Get Latest Tag
-        id: latest-tag
+      - name: Determine new version
+        id: version
         run: |
-          # Get the latest tag or set a default if none exists
           LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
-          
-          # Extract version components
           VERSION=${LATEST_TAG#v}
-          MAJOR=$(echo $VERSION | cut -d. -f1)
-          MINOR=$(echo $VERSION | cut -d. -f2)
-          PATCH=$(echo $VERSION | cut -d. -f3)
-          
-          # Increment patch version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
           PATCH=$((PATCH + 1))
           NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Create and Push Tag
+      - name: Build binary
         run: |
-          echo "Creating new tag: $NEW_VERSION"
-          git tag $NEW_VERSION
-          git push origin $NEW_VERSION
-          
-      - name: Debug
+          rm -rf dist && mkdir dist
+          GOOS=windows GOARCH=amd64 go build -o dist/rust_updater_windows_amd64.exe ./cmd/
+
+      - name: Create Git Tag
         run: |
-          echo "New release tag $NEW_VERSION created and pushed"
-          echo "Current ref: ${{ github.ref }}" 
+          git tag ${{ env.NEW_VERSION }}
+          git push origin ${{ env.NEW_VERSION }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.NEW_VERSION }}
+          name: Release ${{ env.NEW_VERSION }}
+          files: dist/rust_updater_windows_amd64.exe
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
