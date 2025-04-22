@@ -26,7 +26,10 @@ jobs:
       - name: Determine new version
         id: version
         run: |
-          LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          git fetch --tags
+
+          # Получаем последний тег, либо v0.0.0
+          LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | tail -n 1)
           if [ -z "$LATEST_TAG" ]; then
             MAJOR=0
             MINOR=0
@@ -36,6 +39,7 @@ jobs:
             IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
           fi
 
+          # Увеличиваем patch до первого свободного
           while true; do
             PATCH=$((PATCH + 1))
             NEW_VERSION="v$MAJOR.$MINOR.$PATCH"
@@ -44,10 +48,8 @@ jobs:
             fi
           done
 
-          echo "Using new tag: $NEW_VERSION"
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-
 
       - name: Build binary
         run: |
